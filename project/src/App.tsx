@@ -37,40 +37,44 @@ function App() {
             userExtractedInfo: '',
             userDisambiguationResult: '',
             intermediateResults: {
+              filteredByGoldenRules: [
+                '买卖岗位经纪人人均佣金',
+                '新房岗位经纪人人均佣金',
+                '总考核佣金收入',
+                '人均佣金人效比',
+                '总考核分边佣金收入',
+                '实时新房认购佣金收入',
+                '实时租赁佣金收入',
+                '门店层店均佣金',
+                '考核收入目标完成率',
+                '门店层人均佣金',
+                '实时二手佣金收入',
+                '综合回款天数',
+                '租赁岗位经纪人人均佣金',
+                '新房认购未成销佣金',
+                '综合业绩排名'
+              ],
+              filteredByDimensions: ['丢盘佣金量'],
               initialMetrics: [
                 '总新签佣金',
                 '二手买卖纯新签套均佣金',
                 '新房认购套均佣金',
                 '应收佣金打折率',
-                '新房认购佣金_签约维度', 
-                '过户单实收佣金打折率', 
+                '新房认购佣金_签约维度',
+                '过户单实收佣金打折率',
                 '丢盘佣金量',
                 '新房净增认购佣金-签约维度'
               ],
-              filteredByGoldenRules: ['买卖岗位经纪人人均佣金'
-                , '新房岗位经纪人人均佣金'
-                , '总考核佣金收入'
-                , '人均佣金人效比'
-                , '总考核分边佣金收入'
-                , '实时新房认购佣金收入'
-                , '实时租赁佣金收入'
-                , '门店层店均佣金'
-                , '考核收入目标完成率'
-                , '门店层人均佣金'
-                , '实时二手佣金收入'
-                , '综合回款天数'
-                , '租赁岗位经纪人人均佣金'
-                , '新房认购未成销佣金'
-                , '综合业绩排名'],
-              filteredByDimensions: ['丢盘佣金量'],
               filteredByExactMatch: [],
-              disambiguationSteps: ['新房认购套均佣金',
+              disambiguationSteps: [
+                '新房认购套均佣金',
                 '应收佣金打折率',
                 '新房认购佣金_签约维度',
                 '过户单实收佣金打折率',
                 '新房净增认购佣金-签约维度',
                 '总新签佣金',
-                '二手买卖纯新签套均佣金']
+                '二手买卖纯新签套均佣金'
+              ]
             }
           },
           timeRange: {
@@ -89,7 +93,7 @@ function App() {
           },
           groupBy: {
             extractedInfo: '每月，各大区',
-            disambiguationResult: '按"月：month"，"大区：area_name"进行分许',
+            disambiguationResult: '按"月：month"，"大区：area_name"进行分组',
             isCorrect: true,
             userExtractedInfo: '',
             userDisambiguationResult: ''
@@ -120,40 +124,44 @@ function App() {
             userExtractedInfo: '',
             userDisambiguationResult: '',
             intermediateResults: {
+              filteredByGoldenRules: [
+                '买卖岗位经纪人人均佣金',
+                '新房岗位经纪人人均佣金',
+                '总考核佣金收入',
+                '人均佣金人效比',
+                '总考核分边佣金收入',
+                '实时新房认购佣金收入',
+                '实时租赁佣金收入',
+                '门店层店均佣金',
+                '考核收入目标完成率',
+                '门店层人均佣金',
+                '实时二手佣金收入',
+                '综合回款天数',
+                '租赁岗位经纪人人均佣金',
+                '新房认购未成销佣金',
+                '综合业绩排名'
+              ],
+              filteredByDimensions: ['丢盘佣金量'],
               initialMetrics: [
                 '总新签佣金',
                 '二手买卖纯新签套均佣金',
                 '新房认购套均佣金',
                 '应收佣金打折率',
-                '新房认购佣金_签约维度', 
-                '过户单实收佣金打折率', 
+                '新房认购佣金_签约维度',
+                '过户单实收佣金打折率',
                 '丢盘佣金量',
                 '新房净增认购佣金-签约维度'
               ],
-              filteredByGoldenRules: ['买卖岗位经纪人人均佣金'
-                , '新房岗位经纪人人均佣金'
-                , '总考核佣金收入'
-                , '人均佣金人效比'
-                , '总考核分边佣金收入'
-                , '实时新房认购佣金收入'
-                , '实时租赁佣金收入'
-                , '门店层店均佣金'
-                , '考核收入目标完成率'
-                , '门店层人均佣金'
-                , '实时二手佣金收入'
-                , '综合回款天数'
-                , '租赁岗位经纪人人均佣金'
-                , '新房认购未成销佣金'
-                , '综合业绩排名'],
-              filteredByDimensions: ['丢盘佣金量'],
               filteredByExactMatch: [],
-              disambiguationSteps: ['新房认购套均佣金',
+              disambiguationSteps: [
+                '新房认购套均佣金',
                 '应收佣金打折率',
                 '新房认购佣金_签约维度',
                 '过户单实收佣金打折率',
                 '新房净增认购佣金-签约维度',
                 '总新签佣金',
-                '二手买卖纯新签套均佣金']
+                '二手买卖纯新签套均佣金'
+              ]
             }
           },
           timeRange: {
@@ -172,7 +180,7 @@ function App() {
           },
           groupBy: {
             extractedInfo: '每月，各大区',
-            disambiguationResult: '按"月：month"，"大区：area_name"进行分许',
+            disambiguationResult: '按"月：month"，"大区：area_name"进行分组',
             isCorrect: true,
             userExtractedInfo: '',
             userDisambiguationResult: ''
@@ -203,40 +211,44 @@ function App() {
             userExtractedInfo: '',
             userDisambiguationResult: '',
             intermediateResults: {
-              initialMetrics:[
+              filteredByGoldenRules: [
+                '买卖岗位经纪人人均佣金',
+                '新房岗位经纪人人均佣金',
+                '总考核佣金收入',
+                '人均佣金人效比',
+                '总考核分边佣金收入',
+                '实时新房认购佣金收入',
+                '实时租赁佣金收入',
+                '门店层店均佣金',
+                '考核收入目标完成率',
+                '门店层人均佣金',
+                '实时二手佣金收入',
+                '综合回款天数',
+                '租赁岗位经纪人人均佣金',
+                '新房认购未成销佣金',
+                '综合业绩排名'
+              ],
+              filteredByDimensions: ['丢盘佣金量'],
+              initialMetrics: [
                 '总新签佣金',
                 '二手买卖纯新签套均佣金',
                 '新房认购套均佣金',
                 '应收佣金打折率',
-                '新房认购佣金_签约维度', 
-                '过户单实收佣金打折率', 
+                '新房认购佣金_签约维度',
+                '过户单实收佣金打折率',
                 '丢盘佣金量',
                 '新房净增认购佣金-签约维度'
-                ],
-              filteredByGoldenRules: ['买卖岗位经纪人人均佣金'
-                , '新房岗位经纪人人均佣金'
-                , '总考核佣金收入'
-                , '人均佣金人效比'
-                , '总考核分边佣金收入'
-                , '实时新房认购佣金收入'
-                , '实时租赁佣金收入'
-                , '门店层店均佣金'
-                , '考核收入目标完成率'
-                , '门店层人均佣金'
-                , '实时二手佣金收入'
-                , '综合回款天数'
-                , '租赁岗位经纪人人均佣金'
-                , '新房认购未成销佣金'
-                , '综合业绩排名'],
-              filteredByDimensions: ['丢盘佣金量'],
+              ],
               filteredByExactMatch: [],
-              disambiguationSteps: ['新房认购套均佣金',
+              disambiguationSteps: [
+                '新房认购套均佣金',
                 '应收佣金打折率',
                 '新房认购佣金_签约维度',
                 '过户单实收佣金打折率',
                 '新房净增认购佣金-签约维度',
                 '总新签佣金',
-                '二手买卖纯新签套均佣金']
+                '二手买卖纯新签套均佣金'
+              ]
             }
           },
           timeRange: {
@@ -255,7 +267,7 @@ function App() {
           },
           groupBy: {
             extractedInfo: '每月，各大区',
-            disambiguationResult: '按"月：month"，"大区：area_name"进行分许',
+            disambiguationResult: '按"月：month"，"大区：area_name"进行分组',
             isCorrect: true,
             userExtractedInfo: '',
             userDisambiguationResult: ''

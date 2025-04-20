@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { ChevronDown, ChevronRight, Edit2 } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { ChevronDown, ChevronRight, CheckCircle, Edit2, EyeOff, Eye, Copy } from 'lucide-react';
 import ActionButtons from '../ui/ActionButtons';
 import Card from '../ui/Card';
 
@@ -55,27 +55,39 @@ interface ParameterExtractionStepProps {
   onPrev: () => void;
 }
 
+const steps = [
+  { key: 'metric', label: '指标' },
+  { key: 'timeRange', label: '时间范围' },
+  { key: 'constraints', label: '约束条件' },
+  { key: 'groupBy', label: '分组条件' },
+  { key: 'sorting', label: '排序条件' },
+  { key: 'calculation', label: '计算方式' }
+];
+
+const parameterLabels: Record<keyof QueryParameter, string> = {
+  metric: '指标',
+  timeRange: '时间范围',
+  constraints: '约束条件',
+  groupBy: '分组条件',
+  sorting: '排序条件',
+  calculation: '计算方式'
+};
+
 const ParameterExtractionStep = ({ data, onUpdate, onNext, onPrev }: ParameterExtractionStepProps) => {
   const [localData, setLocalData] = useState<QueryExtractionData[]>(data);
   const [currentQueryIndex, setCurrentQueryIndex] = useState(0);
   const [canProceed, setCanProceed] = useState(true);
   const [showIntermediateResults, setShowIntermediateResults] = useState(false);
   const [showAnnotationModal, setShowAnnotationModal] = useState(false);
+  const [showDisambiguation, setShowDisambiguation] = useState(true);
   const [currentAnnotation, setCurrentAnnotation] = useState<{
     title: string;
     key: keyof IntermediateResults;
     value: string;
   } | null>(null);
 
+  const parameterRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const currentQuery = localData[currentQueryIndex];
-  const parameterLabels = {
-    metric: '指标',
-    timeRange: '时间范围',
-    constraints: '约束条件',
-    groupBy: '分组条件',
-    sorting: '排序条件',
-    calculation: '计算方式'
-  };
 
   useEffect(() => {
     const allValid = Object.entries(currentQuery.parameters).every(
@@ -83,6 +95,13 @@ const ParameterExtractionStep = ({ data, onUpdate, onNext, onPrev }: ParameterEx
     );
     setCanProceed(allValid);
   }, [currentQuery]);
+
+  const scrollToParameter = (key: string) => {
+    const element = parameterRefs.current[key];
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
 
   const handleParameterChange = (key: keyof QueryParameter, isCorrect: boolean) => {
     const updatedData = [...localData];
@@ -148,6 +167,18 @@ const ParameterExtractionStep = ({ data, onUpdate, onNext, onPrev }: ParameterEx
     setCurrentAnnotation(null);
   };
 
+  const handleSyncAnnotation = (key: keyof QueryParameter) => {
+    const updatedData = [...localData];
+    const firstQueryParam = localData[0].parameters[key];
+    const currentParam = updatedData[currentQueryIndex].parameters[key];
+
+    currentParam.isCorrect = firstQueryParam.isCorrect;
+    currentParam.userExtractedInfo = firstQueryParam.userExtractedInfo;
+    currentParam.userDisambiguationResult = firstQueryParam.userDisambiguationResult;
+
+    setLocalData(updatedData);
+  };
+
   const renderIntermediateResults = () => {
     const results = currentQuery.parameters.metric.intermediateResults;
     const annotations = currentQuery.parameters.metric.annotations;
@@ -198,11 +229,41 @@ const ParameterExtractionStep = ({ data, onUpdate, onNext, onPrev }: ParameterEx
     );
   };
 
+  const renderCustomInput = (key: keyof QueryParameter) => {
+    return (
+      <input
+        type="text"
+        value={currentQuery.parameters[key].userDisambiguationResult}
+        onChange={(e) => handleUserInputChange(key, 'userDisambiguationResult', e.target.value)}
+        className="w-full border border-gray-300 rounded-md p-2 text-gray-700 focus:ring-blue-500 focus:border-blue-500"
+        placeholder="请输入正确的消歧结果..."
+      />
+    );
+  };
+
   return (
     <Card>
       <div className="space-y-6">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">槽位提取和消歧</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">槽位提取和消歧</h2>
+            <button
+              onClick={() => setShowDisambiguation(!showDisambiguation)}
+              className="flex items-center px-3 py-1.5 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+            >
+              {showDisambiguation ? (
+                <>
+                  <EyeOff className="w-4 h-4 mr-1.5" />
+                  折叠消歧结果
+                </>
+              ) : (
+                <>
+                  <Eye className="w-4 h-4 mr-1.5" />
+                  展开消歧结果
+                </>
+              )}
+            </button>
+          </div>
           <p className="text-gray-600 mb-4">
             请评估系统对查询的槽位提取和消歧是否准确：
           </p>
@@ -216,107 +277,150 @@ const ParameterExtractionStep = ({ data, onUpdate, onNext, onPrev }: ParameterEx
           <p className="text-blue-800 font-medium">{currentQuery.query}</p>
         </div>
 
-        <div className="space-y-4">
-          {Object.entries(currentQuery.parameters).map(([key, param]) => (
-            <div key={key} className="border border-gray-200 rounded-md p-4">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-medium text-gray-800">
-                  {parameterLabels[key as keyof QueryParameter]}
-                </h3>
-                <div className="flex items-center space-x-4">
-                  <div 
-                    className={`flex items-center cursor-pointer ${param.isCorrect ? 'text-green-600' : 'text-gray-400'}`}
-                    onClick={() => handleParameterChange(key as keyof QueryParameter, true)}
-                  >
-                    <div className={`w-4 h-4 border rounded-full mr-1 ${param.isCorrect ? 'border-green-500 bg-green-500' : 'border-gray-300'}`}>
-                      {param.isCorrect && <div className="w-2 h-2 bg-white rounded-full mx-auto my-auto"></div>}
-                    </div>
-                    <span className="text-sm">正确</span>
+        <div className="flex gap-6">
+          <div className="w-24 shrink-0 sticky top-0 self-start">
+            <div className="space-y-1">
+              {steps.map((step, index) => {
+                const param = currentQuery.parameters[step.key as keyof QueryParameter];
+                const isCompleted = param.isCorrect || (!param.isCorrect && param.userExtractedInfo && param.userDisambiguationResult);
+
+                return (
+                  <div key={step.key} className="relative">
+                    <button
+                      onClick={() => scrollToParameter(step.key)}
+                      className="w-full flex flex-col items-center p-2 rounded-md hover:bg-gray-50 transition-colors"
+                    >
+                      <div className="relative">
+                        {isCompleted ? (
+                          <CheckCircle className="w-6 h-6 text-green-500" />
+                        ) : (
+                          <div className="w-6 h-6 rounded-full border-2 border-gray-300" />
+                        )}
+                      </div>
+                      <span className="text-xs text-gray-600 text-center mt-1 leading-tight">
+                        {step.label}
+                      </span>
+                    </button>
+                    {index < steps.length - 1 && (
+                      <div className="absolute left-1/2 transform -translate-x-1/2 h-4 w-0.5 bg-gray-200">
+                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 rotate-45 w-2 h-2 border-r-2 border-b-2 border-gray-200" />
+                      </div>
+                    )}
                   </div>
-                  <div 
-                    className={`flex items-center cursor-pointer ${!param.isCorrect ? 'text-red-600' : 'text-gray-400'}`}
-                    onClick={() => handleParameterChange(key as keyof QueryParameter, false)}
-                  >
-                    <div className={`w-4 h-4 border rounded-full mr-1 ${!param.isCorrect ? 'border-red-500 bg-red-500' : 'border-gray-300'}`}>
-                      {!param.isCorrect && <div className="w-2 h-2 bg-white rounded-full mx-auto my-auto"></div>}
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="flex-1 space-y-4">
+            {Object.entries(currentQuery.parameters).map(([key, param]) => (
+              <div
+                key={key}
+                ref={el => parameterRefs.current[key] = el}
+                className="border border-gray-200 rounded-md p-4"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-medium text-gray-800">
+                    {parameterLabels[key as keyof QueryParameter]}
+                  </h3>
+                  <div className="flex items-center space-x-4">
+                    <div 
+                      className={`flex items-center cursor-pointer ${param.isCorrect ? 'text-green-600' : 'text-gray-400'}`}
+                      onClick={() => handleParameterChange(key as keyof QueryParameter, true)}
+                    >
+                      <div className={`w-4 h-4 border rounded-full mr-1 ${param.isCorrect ? 'border-green-500 bg-green-500' : 'border-gray-300'}`}>
+                        {param.isCorrect && <div className="w-2 h-2 bg-white rounded-full mx-auto my-auto"></div>}
+                      </div>
+                      <span className="text-sm">正确</span>
                     </div>
-                    <span className="text-sm">不正确</span>
+                    <div 
+                      className={`flex items-center cursor-pointer ${!param.isCorrect ? 'text-red-600' : 'text-gray-400'}`}
+                      onClick={() => handleParameterChange(key as keyof QueryParameter, false)}
+                    >
+                      <div className={`w-4 h-4 border rounded-full mr-1 ${!param.isCorrect ? 'border-red-500 bg-red-500' : 'border-gray-300'}`}>
+                        {!param.isCorrect && <div className="w-2 h-2 bg-white rounded-full mx-auto my-auto"></div>}
+                      </div>
+                      <span className="text-sm">不正确</span>
+                    </div>
+                    {currentQueryIndex > 0 && key !== 'metric' && (
+                      <button
+                        onClick={() => handleSyncAnnotation(key as keyof QueryParameter)}
+                        className="flex items-center text-sm text-gray-600 hover:text-blue-600 transition-colors"
+                      >
+                        <Copy className="w-4 h-4 mr-1" />
+                        同步查询①标注
+                      </button>
+                    )}
                   </div>
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <div className={`p-3 ${param.isCorrect ? 'bg-purple-50' : 'bg-purple-100'} rounded-md`}>
-                  <p className="text-sm text-gray-600 mb-1">提取到的信息：</p>
-                  <p className={param.isCorrect ? 'text-purple-800' : 'text-purple-900'}>
-                    {param.extractedInfo}
-                  </p>
                 </div>
                 
-                {param.disambiguationResult && (
-                  <div className={`p-3 ${param.isCorrect ? 'bg-blue-50' : 'bg-blue-100'} rounded-md`}>
-                    <p className="text-sm text-gray-600 mb-1">消歧结果：</p>
-                    <p className={param.isCorrect ? 'text-blue-800' : 'text-blue-900'}>
-                      {param.disambiguationResult.replace('分许', '分组')}
+                <div className="space-y-2">
+                  <div className={`p-3 ${param.isCorrect ? 'bg-purple-50' : 'bg-purple-100'} rounded-md`}>
+                    <p className="text-sm text-gray-600 mb-1">提取到的信息：</p>
+                    <p className={param.isCorrect ? 'text-purple-800' : 'text-purple-900'}>
+                      {param.extractedInfo}
                     </p>
                   </div>
-                )}
-              </div>
-
-              {key === 'metric' && (
-                <button
-                  onClick={() => setShowIntermediateResults(!showIntermediateResults)}
-                  className="mt-2 flex items-center text-sm text-blue-600 hover:text-blue-700"
-                >
-                  {showIntermediateResults ? (
-                    <>
-                      <ChevronDown className="w-4 h-4 mr-1" />
-                      收起中间结果
-                    </>
-                  ) : (
-                    <>
-                      <ChevronRight className="w-4 h-4 mr-1" />
-                      查看中间结果
-                    </>
-                  )}
-                </button>
-              )}
-              
-              {key === 'metric' && showIntermediateResults && renderIntermediateResults()}
-              
-              {!param.isCorrect && (
-                <div className="mt-3 space-y-3">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      正确的提取信息：
-                    </label>
-                    <input
-                      type="text"
-                      value={param.userExtractedInfo}
-                      onChange={(e) => handleUserInputChange(key as keyof QueryParameter, 'userExtractedInfo', e.target.value)}
-                      className="w-full border border-gray-300 rounded-md p-2 text-gray-700 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="请输入正确的提取信息..."
-                    />
-                  </div>
                   
-                  {key !== 'calculation' && (
+                  {param.disambiguationResult && showDisambiguation && (
+                    <div className={`p-3 ${param.isCorrect ? 'bg-blue-50' : 'bg-blue-100'} rounded-md transition-all duration-200`}>
+                      <p className="text-sm text-gray-600 mb-1">消歧结果：</p>
+                      <p className={param.isCorrect ? 'text-blue-800' : 'text-blue-900'}>
+                        {param.disambiguationResult.replace('分许', '分组')}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {key === 'metric' && (
+                  <button
+                    onClick={() => setShowIntermediateResults(!showIntermediateResults)}
+                    className="mt-2 flex items-center text-sm text-blue-600 hover:text-blue-700"
+                  >
+                    {showIntermediateResults ? (
+                      <>
+                        <ChevronDown className="w-4 h-4 mr-1" />
+                        收起中间结果
+                      </>
+                    ) : (
+                      <>
+                        <ChevronRight className="w-4 h-4 mr-1" />
+                        查看中间结果
+                      </>
+                    )}
+                  </button>
+                )}
+                
+                {key === 'metric' && showIntermediateResults && renderIntermediateResults()}
+                
+                {!param.isCorrect && (
+                  <div className="mt-3 space-y-3">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        正确的消歧结果：
+                        正确的提取信息：
                       </label>
                       <input
                         type="text"
-                        value={param.userDisambiguationResult}
-                        onChange={(e) => handleUserInputChange(key as keyof QueryParameter, 'userDisambiguationResult', e.target.value)}
+                        value={param.userExtractedInfo}
+                        onChange={(e) => handleUserInputChange(key as keyof QueryParameter, 'userExtractedInfo', e.target.value)}
                         className="w-full border border-gray-300 rounded-md p-2 text-gray-700 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="请输入正确的消歧结果..."
+                        placeholder="请输入正确的提取信息..."
                       />
                     </div>
-                  )}
-                </div>
-              )}
-            </div>
-          ))}
+                    
+                    {key !== 'calculation' && showDisambiguation && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          正确的消歧结果：
+                        </label>
+                        {renderCustomInput(key as keyof QueryParameter)}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
 
         <ActionButtons
