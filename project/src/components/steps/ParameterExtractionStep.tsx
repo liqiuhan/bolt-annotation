@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ChevronDown, ChevronRight, CheckCircle, Edit2, EyeOff, Eye, Copy } from 'lucide-react';
+import { ChevronDown, ChevronRight, CheckCircle, Edit2, EyeOff, Eye, Copy, Search, X } from 'lucide-react';
+import DatePicker from 'react-datepicker';
+import "react-datepicker/dist/react-datepicker.css";
 import ActionButtons from '../ui/ActionButtons';
 import Card from '../ui/Card';
 
@@ -73,6 +75,24 @@ const parameterLabels: Record<keyof QueryParameter, string> = {
   calculation: '计算方式'
 };
 
+const mockMetrics = [
+  { id: '61535', name: '总新签佣金' },
+  { id: '61536', name: '总新签单量' },
+  { id: '61537', name: '总新签GTV' },
+  { id: '61538', name: '新房认购套均佣金' },
+  { id: '61539', name: '应收佣金打折率' },
+];
+
+const mockDimensions = [
+  '业绩城市',
+  '大区',
+  '子品牌',
+  '业务类型',
+  '月份',
+  '季度',
+  '年份',
+];
+
 const ParameterExtractionStep = ({ data, onUpdate, onNext, onPrev }: ParameterExtractionStepProps) => {
   const [localData, setLocalData] = useState<QueryExtractionData[]>(data);
   const [currentQueryIndex, setCurrentQueryIndex] = useState(0);
@@ -85,6 +105,12 @@ const ParameterExtractionStep = ({ data, onUpdate, onNext, onPrev }: ParameterEx
     key: keyof IntermediateResults;
     value: string;
   } | null>(null);
+  const [metricSearch, setMetricSearch] = useState('');
+  const [showMetricSuggestions, setShowMetricSuggestions] = useState(false);
+  const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([null, null]);
+  const [constraints, setConstraints] = useState<Array<{ dimension: string; operator: string; values: string }>>([]);
+  const [groupByDimensions, setGroupByDimensions] = useState<string[]>([]);
+  const [sortingConfig, setSortingConfig] = useState({ order: 'desc', type: 'top', limit: 3 });
 
   const parameterRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const currentQuery = localData[currentQueryIndex];
@@ -179,6 +205,12 @@ const ParameterExtractionStep = ({ data, onUpdate, onNext, onPrev }: ParameterEx
     setLocalData(updatedData);
   };
 
+  const handleMetricSelect = (metric: { id: string; name: string }) => {
+    handleUserInputChange('metric', 'userDisambiguationResult', `${metric.id}：${metric.name}`);
+    setShowMetricSuggestions(false);
+    setMetricSearch('');
+  };
+
   const renderIntermediateResults = () => {
     const results = currentQuery.parameters.metric.intermediateResults;
     const annotations = currentQuery.parameters.metric.annotations;
@@ -230,15 +262,301 @@ const ParameterExtractionStep = ({ data, onUpdate, onNext, onPrev }: ParameterEx
   };
 
   const renderCustomInput = (key: keyof QueryParameter) => {
-    return (
-      <input
-        type="text"
-        value={currentQuery.parameters[key].userDisambiguationResult}
-        onChange={(e) => handleUserInputChange(key, 'userDisambiguationResult', e.target.value)}
-        className="w-full border border-gray-300 rounded-md p-2 text-gray-700 focus:ring-blue-500 focus:border-blue-500"
-        placeholder="请输入正确的消歧结果..."
-      />
-    );
+    if (key === 'metric') {
+      return (
+        <div className="relative">
+          <div className="relative">
+            <input
+              type="text"
+              value={metricSearch}
+              onChange={(e) => {
+                setMetricSearch(e.target.value);
+                setShowMetricSuggestions(true);
+              }}
+              className="w-full border border-gray-300 rounded-md p-2 pr-8 text-gray-700 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="搜索指标..."
+            />
+            <Search className="absolute right-2 top-2.5 w-4 h-4 text-gray-400" />
+          </div>
+          {showMetricSuggestions && (
+            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg">
+              {mockMetrics
+                .filter(m => 
+                  m.name.toLowerCase().includes(metricSearch.toLowerCase()) ||
+                  m.id.includes(metricSearch)
+                )
+                .map(metric => (
+                  <div
+                    key={metric.id}
+                    className="px-3 py-2 hover:bg-gray-50 cursor-pointer"
+                    onClick={() => handleMetricSelect(metric)}
+                  >
+                    {metric.id}：{metric.name}
+                  </div>
+                ))}
+            </div>
+          )}
+          {currentQuery.parameters.metric.userDisambiguationResult && (
+            <div className="mt-2 p-2 bg-blue-50 rounded-md">
+              {currentQuery.parameters.metric.userDisambiguationResult}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    if (key === 'timeRange') {
+      return (
+        <div className="flex gap-2 items-center">
+          <DatePicker
+            selected={dateRange[0]}
+            onChange={(date) => setDateRange([date, dateRange[1]])}
+            selectsStart
+            startDate={dateRange[0]}
+            endDate={dateRange[1]}
+            className="w-full border border-gray-300 rounded-md p-2 text-gray-700"
+            placeholderText="开始日期"
+            dateFormat="yyyy-MM-dd"
+          />
+          <span className="text-gray-500">至</span>
+          <DatePicker
+            selected={dateRange[1]}
+            onChange={(date) => {
+              setDateRange([dateRange[0], date]);
+              if (dateRange[0] && date) {
+                handleUserInputChange(
+                  'timeRange',
+                  'userDisambiguationResult',
+                  `between ${dateRange[0].toISOString().split('T')[0]} and ${date.toISOString().split('T')[0]}`
+                );
+              }
+            }}
+            selectsEnd
+            startDate={dateRange[0]}
+            endDate={dateRange[1]}
+            minDate={dateRange[0]}
+            className="w-full border border-gray-300 rounded-md p-2 text-gray-700"
+            placeholderText="结束日期"
+            dateFormat="yyyy-MM-dd"
+          />
+        </div>
+      );
+    }
+
+    if (key === 'constraints') {
+      return (
+        <div className="space-y-2">
+          {constraints.map((constraint, index) => (
+            <div key={index} className="flex gap-2 items-center">
+              <select
+                value={constraint.dimension}
+                onChange={(e) => {
+                  const newConstraints = [...constraints];
+                  newConstraints[index].dimension = e.target.value;
+                  setConstraints(newConstraints);
+                  handleUserInputChange(
+                    'constraints',
+                    'userDisambiguationResult',
+                    newConstraints.map(c => `${c.dimension} ${c.operator} (${c.values})`).join('; ')
+                  );
+                }}
+                className="flex-1 border border-gray-300 rounded-md p-2"
+              >
+                <option value="">选择维度</option>
+                {mockDimensions.map(dim => (
+                  <option key={dim} value={dim}>{dim}</option>
+                ))}
+              </select>
+              <select
+                value={constraint.operator}
+                onChange={(e) => {
+                  const newConstraints = [...constraints];
+                  newConstraints[index].operator = e.target.value;
+                  setConstraints(newConstraints);
+                  handleUserInputChange(
+                    'constraints',
+                    'userDisambiguationResult',
+                    newConstraints.map(c => `${c.dimension} ${c.operator} (${c.values})`).join('; ')
+                  );
+                }}
+                className="w-32 border border-gray-300 rounded-md p-2"
+              >
+                <option value="in">包含</option>
+                <option value="not in">不包含</option>
+              </select>
+              <input
+                type="text"
+                value={constraint.values}
+                onChange={(e) => {
+                  const newConstraints = [...constraints];
+                  newConstraints[index].values = e.target.value;
+                  setConstraints(newConstraints);
+                  handleUserInputChange(
+                    'constraints',
+                    'userDisambiguationResult',
+                    newConstraints.map(c => `${c.dimension} ${c.operator} (${c.values})`).join('; ')
+                  );
+                }}
+                className="flex-1 border border-gray-300 rounded-md p-2"
+                placeholder="输入枚举值，用逗号分隔"
+              />
+              <button
+                onClick={() => {
+                  const newConstraints = constraints.filter((_, i) => i !== index);
+                  setConstraints(newConstraints);
+                  handleUserInputChange(
+                    'constraints',
+                    'userDisambiguationResult',
+                    newConstraints.map(c => `${c.dimension} ${c.operator} (${c.values})`).join('; ')
+                  );
+                }}
+                className="p-2 text-gray-500 hover:text-red-500"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          ))}
+          <button
+            onClick={() => {
+              setConstraints([...constraints, { dimension: '', operator: 'in', values: '' }]);
+            }}
+            className="text-blue-600 hover:text-blue-700 text-sm"
+          >
+            + 添加约束条件
+          </button>
+        </div>
+      );
+    }
+
+    if (key === 'groupBy') {
+      return (
+        <div className="space-y-2">
+          {groupByDimensions.map((dimension, index) => (
+            <div key={index} className="flex gap-2 items-center">
+              <select
+                value={dimension}
+                onChange={(e) => {
+                  const newDimensions = [...groupByDimensions];
+                  newDimensions[index] = e.target.value;
+                  setGroupByDimensions(newDimensions);
+                  handleUserInputChange(
+                    'groupBy',
+                    'userDisambiguationResult',
+                    `按"${newDimensions.join('","')}"进行分组`
+                  );
+                }}
+                className="flex-1 border border-gray-300 rounded-md p-2"
+              >
+                <option value="">选择维度</option>
+                {mockDimensions.map(dim => (
+                  <option key={dim} value={dim}>{dim}</option>
+                ))}
+              </select>
+              <button
+                onClick={() => {
+                  const newDimensions = groupByDimensions.filter((_, i) => i !== index);
+                  setGroupByDimensions(newDimensions);
+                  handleUserInputChange(
+                    'groupBy',
+                    'userDisambiguationResult',
+                    `按"${newDimensions.join('","')}"进行分组`
+                  );
+                }}
+                className="p-2 text-gray-500 hover:text-red-500"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          ))}
+          <button
+            onClick={() => {
+              setGroupByDimensions([...groupByDimensions, '']);
+            }}
+            className="text-blue-600 hover:text-blue-700 text-sm"
+          >
+            + 添加分组维度
+          </button>
+        </div>
+      );
+    }
+
+    if (key === 'sorting') {
+      return (
+        <div className="flex gap-2 items-center">
+          <select
+            value={sortingConfig.order}
+            onChange={(e) => {
+              const newConfig = { ...sortingConfig, order: e.target.value };
+              setSortingConfig(newConfig);
+              handleUserInputChange(
+                'sorting',
+                'userDisambiguationResult',
+                `${newConfig.order === 'asc' ? '升序' : '降序'}, ${newConfig.type} ${newConfig.limit}`
+              );
+            }}
+            className="w-24 border border-gray-300 rounded-md p-2"
+          >
+            <option value="asc">升序</option>
+            <option value="desc">降序</option>
+          </select>
+          <select
+            value={sortingConfig.type}
+            onChange={(e) => {
+              const newConfig = { ...sortingConfig, type: e.target.value };
+              setSortingConfig(newConfig);
+              handleUserInputChange(
+                'sorting',
+                'userDisambiguationResult',
+                `${newConfig.order === 'asc' ? '升序' : '降序'}, ${newConfig.type} ${newConfig.limit}`
+              );
+            }}
+            className="w-24 border border-gray-300 rounded-md p-2"
+          >
+            <option value="top">Top</option>
+            <option value="bottom">Bottom</option>
+          </select>
+          <input
+            type="number"
+            value={sortingConfig.limit}
+            onChange={(e) => {
+              const newConfig = { ...sortingConfig, limit: parseInt(e.target.value) };
+              setSortingConfig(newConfig);
+              handleUserInputChange(
+                'sorting',
+                'userDisambiguationResult',
+                `${newConfig.order === 'asc' ? '升序' : '降序'}, ${newConfig.type} ${newConfig.limit}`
+              );
+            }}
+            className="w-24 border border-gray-300 rounded-md p-2"
+            min="1"
+          />
+        </div>
+      );
+    }
+
+    if (key === 'calculation') {
+      return (
+        <div className="flex gap-2 items-center">
+          <label className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              checked={currentQuery.parameters.calculation.userExtractedInfo === '合计'}
+              onChange={(e) => {
+                handleUserInputChange(
+                  'calculation',
+                  'userExtractedInfo',
+                  e.target.checked ? '合计' : ''
+                );
+              }}
+              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            />
+            <span>合计</span>
+          </label>
+        </div>
+      );
+    }
+
+    return null;
   };
 
   return (
