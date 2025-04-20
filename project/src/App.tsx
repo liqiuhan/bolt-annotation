@@ -35,7 +35,37 @@ function App() {
             disambiguationResult: '61535：总新签佣金',
             isCorrect: true,
             userExtractedInfo: '',
-            userDisambiguationResult: ''
+            userDisambiguationResult: '',
+            intermediateResults: {
+              initialMetrics: [
+                '月日均联网门店数',
+                '净增有效门店量',
+                '净增有效门店量',
+                '贝联潜力门店量',
+                '库存有效门店量',
+                '净增联网门店量',
+                '新增联网门店量',
+                '链家物理门店数',
+                '门店二手业务比重',
+                '租赁新增客源量',
+                '壳内门店数_联网率口径',
+                '解约门店量',
+                '贝联门店流失率',
+                '门店流失率',
+                '链家潜力门店量',
+                '高潜力门店占比',
+                '门店联网率',
+                '库存联网门店量',
+                '招聘和拓店新增经纪人数',
+                '签约门店量_内外部新增',
+                '市场门店数_联网率口径',
+                '店均佣金'
+              ],
+              filteredByGoldenRules: ['店均佣金'],
+              filteredByDimensions: ['新增门店_北链'],
+              filteredByExactMatch: [],
+              disambiguationSteps: ['净增联网门店量', '新增联网门店量']
+            }
           },
           timeRange: {
             extractedInfo: '今年',
@@ -82,7 +112,37 @@ function App() {
             disambiguationResult: '61536：总新签单量',
             isCorrect: true,
             userExtractedInfo: '',
-            userDisambiguationResult: ''
+            userDisambiguationResult: '',
+            intermediateResults: {
+              initialMetrics: [
+                '月日均联网门店数',
+                '净增有效门店量',
+                '净增有效门店量',
+                '贝联潜力门店量',
+                '库存有效门店量',
+                '净增联网门店量',
+                '新增联网门店量',
+                '链家物理门店数',
+                '门店二手业务比重',
+                '租赁新增客源量',
+                '壳内门店数_联网率口径',
+                '解约门店量',
+                '贝联门店流失率',
+                '门店流失率',
+                '链家潜力门店量',
+                '高潜力门店占比',
+                '门店联网率',
+                '库存联网门店量',
+                '招聘和拓店新增经纪人数',
+                '签约门店量_内外部新增',
+                '市场门店数_联网率口径',
+                '店均佣金'
+              ],
+              filteredByGoldenRules: ['店均佣金'],
+              filteredByDimensions: ['新增门店_北链'],
+              filteredByExactMatch: [],
+              disambiguationSteps: ['净增联网门店量', '新增联网门店量']
+            }
           },
           timeRange: {
             extractedInfo: '今年',
@@ -129,7 +189,37 @@ function App() {
             disambiguationResult: '61537：总新签GTV',
             isCorrect: true,
             userExtractedInfo: '',
-            userDisambiguationResult: ''
+            userDisambiguationResult: '',
+            intermediateResults: {
+              initialMetrics: [
+                '月日均联网门店数',
+                '净增有效门店量',
+                '净增有效门店量',
+                '贝联潜力门店量',
+                '库存有效门店量',
+                '净增联网门店量',
+                '新增联网门店量',
+                '链家物理门店数',
+                '门店二手业务比重',
+                '租赁新增客源量',
+                '壳内门店数_联网率口径',
+                '解约门店量',
+                '贝联门店流失率',
+                '门店流失率',
+                '链家潜力门店量',
+                '高潜力门店占比',
+                '门店联网率',
+                '库存联网门店量',
+                '招聘和拓店新增经纪人数',
+                '签约门店量_内外部新增',
+                '市场门店数_联网率口径',
+                '店均佣金'
+              ],
+              filteredByGoldenRules: ['店均佣金'],
+              filteredByDimensions: ['新增门店_北链'],
+              filteredByExactMatch: [],
+              disambiguationSteps: ['净增联网门店量', '新增联网门店量']
+            }
           },
           timeRange: {
             extractedInfo: '今年',
